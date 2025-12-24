@@ -9,10 +9,10 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 <!-- Salesforce Package Install -->
-<a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK">
+<a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK">
   <img src="https://img.shields.io/badge/Install%20in-Production-blue.svg?logo=salesforce" alt="Install in Salesforce Production"/>
 </a>
-<a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK">
+<a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK">
   <img src="https://img.shields.io/badge/Install%20in-Sandbox-green.svg?logo=salesforce" alt="Install in Salesforce Sandbox"/>
 </a>
 
@@ -124,8 +124,8 @@ For the easiest Salesforce deployment, install our unlocked package:
 
 | Environment | Install Link |
 |------------|--------------|
-| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK) |
-| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK) |
+| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK) |
+| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK) |
 
 After installing:
 1. Go to the **Convex Setup** tab in Salesforce
