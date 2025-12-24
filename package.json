@@ -1,0 +1,47 @@
+{
+  "name": "convex-salesforce-connector",
+  "version": "1.0.0",
+  "description": "Real-time bidirectional sync between Salesforce and Convex using Change Data Capture",
+  "main": "index.js",
+  "scripts": {
+    "setup": "node scripts/setup-wizard.mjs",
+    "dev": "npx convex dev",
+    "deploy:convex": "npx convex deploy",
+    "deploy:salesforce": "sf project deploy start -d salesforce/force-app",
+    "sync": "npx convex run salesforce:syncAll",
+    "status": "npx convex run salesforce:getSyncStats",
+    "test:salesforce": "sf apex run test -n ConvexCDCServiceTest -w 5",
+    "generate:trigger": "node scripts/generate-trigger.mjs",
+    "lint": "eslint convex/"
+  },
+  "keywords": [
+    "convex",
+    "salesforce",
+    "cdc",
+    "sync",
+    "change-data-capture",
+    "real-time",
+    "integration"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/convex-salesforce-connector"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/convex-salesforce-connector/issues"
+  },
+  "homepage": "https://github.com/yourusername/convex-salesforce-connector#readme",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "convex": "^1.17.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "inquirer": "^9.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
