@@ -1,12 +1,12 @@
 {
   "packageDirectories": [
     {
+      "versionName": "ver 0.1",
+      "versionNumber": "0.1.0.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Convex CDC Connector",
-      "versionName": "Spring '25",
-      "versionNumber": "1.0.0.NEXT",
-      "versionDescription": "Real-time Salesforce to Convex sync via Change Data Capture"
+      "versionDescription": ""
     }
   ],
   "name": "convex-salesforce-connector",
@@ -14,6 +14,8 @@
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "59.0",
   "packageAliases": {
-    "Convex CDC Connector": "0Ho000000000000AAA"
+    "Convex CDC Connector": "0Hofo0000000I3NCAU",
+    "Convex CDC Connector@0.1.0-1": "04tfo000001FcKXAA0",
+    "Convex CDC Connector@0.1.0-2": "04tfo000001FcM9AAK"
   }
 }

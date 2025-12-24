@@ -4,6 +4,7 @@
         <itemInstances>
             <componentInstance>
                 <componentName>convexSetupWizard</componentName>
+                <identifier>convexSetupWizard1</identifier>
             </componentInstance>
         </itemInstances>
         <name>main</name>

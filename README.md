@@ -9,10 +9,10 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 <!-- Salesforce Package Install -->
-<a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=YOUR_PACKAGE_ID">
+<a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK">
   <img src="https://img.shields.io/badge/Install%20in-Production-blue.svg?logo=salesforce" alt="Install in Salesforce Production"/>
 </a>
-<a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=YOUR_PACKAGE_ID">
+<a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK">
   <img src="https://img.shields.io/badge/Install%20in-Sandbox-green.svg?logo=salesforce" alt="Install in Salesforce Sandbox"/>
 </a>
 
@@ -115,14 +115,17 @@ npx convex run salesforce:syncAll
 
 ## Salesforce Package Installation
 
-For the easiest Salesforce deployment, install our managed package:
+For the easiest Salesforce deployment, install our unlocked package:
 
 | Environment | Install Link |
 |------------|--------------|
-| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=YOUR_PACKAGE_ID) |
-| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=YOUR_PACKAGE_ID) |
+| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK) |
+| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcM9AAK) |
 
-After installing, update the webhook URL in **ConvexCDCService** with your Convex deployment URL.
+After installing:
+1. Go to the **Convex Setup** tab in Salesforce
+2. Follow the setup wizard to configure your webhook URL and secret
+3. Enable CDC for your desired objects
 
 ## Architecture
 
@@ -146,6 +149,67 @@ After installing, update the webhook URL in **ConvexCDCService** with your Conve
 │                 │                    │  │  Your App  │  │
 └─────────────────┘                    └──────────────────┘
 ```
+
+## Authentication & Environments
+
+### Authentication Flow
+
+The connector uses two authentication mechanisms:
+
+**1. Salesforce → Convex (Webhook Security)**
+- HMAC-SHA256 signature on all CDC webhook payloads
+- Shared secret stored in Salesforce Custom Metadata & Convex env vars
+- Timestamp validation prevents replay attacks
+
+**2. Convex → Salesforce (OAuth 2.0)**
+- Connected App with OAuth 2.0 + refresh token flow
+- Tokens auto-refresh before expiry (no manual intervention)
+- Credentials stored securely in Convex environment variables
+
+### Environment Setup
+
+**Development vs Production Convex**
+
+```bash
+# Development (Convex dev deployment)
+npx convex dev
+# Webhook URL: https://your-project-123.convex.cloud/webhooks/salesforce/cdc
+
+# Production (Convex production deployment)
+npx convex deploy
+# Webhook URL: https://your-project-123.convex.site/webhooks/salesforce/cdc
+```
+
+**Environment Variables (Convex)**
+
+Set these in your Convex dashboard under Settings → Environment Variables:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SALESFORCE_CLIENT_ID` | Connected App Consumer Key | Yes |
+| `SALESFORCE_CLIENT_SECRET` | Connected App Consumer Secret | Yes |
+| `SALESFORCE_INSTANCE_URL` | e.g., `https://yourorg.my.salesforce.com` | Yes |
+| `SALESFORCE_WEBHOOK_SECRET` | Shared HMAC secret (32-char hex) | Yes |
+| `SALESFORCE_REFRESH_TOKEN` | OAuth refresh token | Yes |
+
+**Salesforce Sandbox vs Production**
+
+Use different Custom Metadata values per environment:
+- In **Sandbox**: Configure `Convex_Connector_Settings__mdt` with dev Convex URL
+- In **Production**: Configure with production Convex URL
+
+The setup wizard helps configure these values per environment.
+
+### Generating Webhook Secret
+
+```bash
+# Generate a secure 32-character hex secret
+openssl rand -hex 32
+```
+
+Use the same secret in:
+1. Convex environment variable: `SALESFORCE_WEBHOOK_SECRET`
+2. Salesforce Custom Metadata: `Webhook_Secret__c`
 
 ## Configuration
 
