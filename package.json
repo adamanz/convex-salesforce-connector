@@ -27,12 +27,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/convex-salesforce-connector"
+    "url": "https://github.com/adamanz/convex-salesforce-connector"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/convex-salesforce-connector/issues"
+    "url": "https://github.com/adamanz/convex-salesforce-connector/issues"
   },
-  "homepage": "https://github.com/yourusername/convex-salesforce-connector#readme",
+  "homepage": "https://github.com/adamanz/convex-salesforce-connector#readme",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "convex": "^1.17.0",

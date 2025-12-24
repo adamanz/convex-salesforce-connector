@@ -5,7 +5,7 @@
 [![Salesforce](https://img.shields.io/badge/Salesforce-CDC-00A1E0.svg)](https://developer.salesforce.com/docs/atlas.en-us.change_data_capture.meta/change_data_capture)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/npm/v/convex-salesforce-connector.svg)](https://www.npmjs.com/package/convex-salesforce-connector)
-[![CI](https://github.com/yourusername/convex-salesforce-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/convex-salesforce-connector/actions/workflows/ci.yml)
+[![CI](https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 <!-- Salesforce Package Install -->
@@ -37,7 +37,7 @@ Sync any Salesforce object to Convex in real-time. React to changes with serverl
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/convex-salesforce-connector.git
+git clone https://github.com/adamanz/convex-salesforce-connector.git
 cd convex-salesforce-connector
 
 # Install dependencies
@@ -59,7 +59,7 @@ The wizard will guide you through:
 #### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/convex-salesforce-connector.git
+git clone https://github.com/adamanz/convex-salesforce-connector.git
 cd convex-salesforce-connector
 npm install
 ```
