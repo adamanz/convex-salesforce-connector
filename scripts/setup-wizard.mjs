@@ -324,28 +324,154 @@ ${objects.map(o => `   - ${o}`).join('\n')}
   log.success('CDC configuration noted');
 }
 
-async function createEnvFile() {
-  log.step(9, 'Creating environment file...');
+function setConvexEnvVar(name, value) {
+  try {
+    execSync(`npx convex env set ${name} "${value}"`, {
+      cwd: ROOT_DIR,
+      stdio: 'pipe',
+      encoding: 'utf-8'
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
 
-  const envPath = join(ROOT_DIR, '.env.local');
+async function setupConvexEnvVars(orgAlias) {
+  log.step(9, 'Configuring Convex environment variables...');
 
-  if (existsSync(envPath)) {
-    const overwrite = await promptYesNo('.env.local already exists. Overwrite?', false);
-    if (!overwrite) return;
+  // Get org info
+  let instanceUrl = '';
+  try {
+    const orgInfo = JSON.parse(execSync(`sf org display -o ${orgAlias} --json`, { encoding: 'utf-8' }));
+    instanceUrl = orgInfo.result?.instanceUrl || '';
+  } catch {}
+
+  if (!instanceUrl) {
+    instanceUrl = await prompt('Salesforce Instance URL (e.g., https://your-org.my.salesforce.com): ');
   }
 
-  console.log('\nEnter your Salesforce credentials (for Convex to call Salesforce API):');
-  const instanceUrl = await prompt('Salesforce Instance URL (e.g., https://your-org.my.salesforce.com): ');
-  const accessToken = await prompt('Salesforce Access Token (from session or connected app): ');
+  console.log(`\n${colors.cyan}Auth Option:${colors.reset}`);
+  console.log('  1. Quick Setup (Session Token) - easier but expires in 2hrs');
+  console.log('  2. Production Setup (Connected App OAuth) - auto-refreshes');
 
-  const envContent = `# Salesforce API credentials
-SALESFORCE_INSTANCE_URL=${instanceUrl}
-SALESFORCE_ACCESS_TOKEN=${accessToken}
-`;
+  const authChoice = await prompt('\nChoose auth method [1/2]: ');
 
-  writeFileSync(envPath, envContent);
-  log.success('Created .env.local');
-  log.warn('Remember to add .env.local to .gitignore!');
+  if (authChoice === '2') {
+    // Connected App OAuth flow
+    console.log(`
+${colors.yellow}Connected App Setup:${colors.reset}
+1. In Salesforce Setup → App Manager → New Connected App
+2. Enable OAuth, add callback: ${colors.cyan}https://login.salesforce.com/services/oauth2/success${colors.reset}
+3. Scopes: "Full access (full)", "Perform requests (refresh_token)"
+4. Save and wait 2-10 mins for activation
+`);
+
+    const clientId = await prompt('Connected App Consumer Key: ');
+    const clientSecret = await prompt('Connected App Consumer Secret: ');
+
+    console.log(`\n${colors.cyan}Opening browser for OAuth authorization...${colors.reset}`);
+    console.log('After authorizing, copy the FULL URL from your browser.\n');
+
+    const authUrl = `${instanceUrl}/services/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=https://login.salesforce.com/services/oauth2/success`;
+
+    try {
+      execSync(`open "${authUrl}" 2>/dev/null || xdg-open "${authUrl}" 2>/dev/null || start "${authUrl}"`, { stdio: 'pipe' });
+    } catch {}
+
+    const callbackUrl = await prompt('Paste the callback URL here: ');
+
+    // Extract auth code from URL
+    const codeMatch = callbackUrl.match(/code=([^&]+)/);
+    if (!codeMatch) {
+      log.error('Could not extract auth code from URL');
+      return false;
+    }
+
+    // Exchange code for tokens
+    console.log('\nExchanging code for tokens...');
+    try {
+      const tokenResponse = execSync(`curl -s -X POST "${instanceUrl}/services/oauth2/token" \
+        -d "grant_type=authorization_code" \
+        -d "code=${codeMatch[1]}" \
+        -d "client_id=${clientId}" \
+        -d "client_secret=${clientSecret}" \
+        -d "redirect_uri=https://login.salesforce.com/services/oauth2/success"`,
+        { encoding: 'utf-8' }
+      );
+
+      const tokens = JSON.parse(tokenResponse);
+
+      if (tokens.error) {
+        log.error(`OAuth error: ${tokens.error_description}`);
+        return false;
+      }
+
+      // Set all env vars
+      console.log('\nSetting Convex environment variables...');
+      setConvexEnvVar('SALESFORCE_CLIENT_ID', clientId);
+      setConvexEnvVar('SALESFORCE_CLIENT_SECRET', clientSecret);
+      setConvexEnvVar('SALESFORCE_INSTANCE_URL', instanceUrl);
+      setConvexEnvVar('SALESFORCE_REFRESH_TOKEN', tokens.refresh_token);
+      setConvexEnvVar('SALESFORCE_ACCESS_TOKEN', tokens.access_token);
+
+      log.success('OAuth tokens configured in Convex!');
+
+    } catch (err) {
+      log.error('Token exchange failed: ' + err.message);
+      return false;
+    }
+
+  } else {
+    // Session token flow (simpler for dev)
+    let accessToken = '';
+    try {
+      const orgInfo = JSON.parse(execSync(`sf org display -o ${orgAlias} --json`, { encoding: 'utf-8' }));
+      accessToken = orgInfo.result?.accessToken || '';
+    } catch {}
+
+    if (!accessToken) {
+      accessToken = await prompt('Salesforce Access Token: ');
+    }
+
+    console.log('\nSetting Convex environment variables...');
+    setConvexEnvVar('SALESFORCE_INSTANCE_URL', instanceUrl);
+    setConvexEnvVar('SALESFORCE_ACCESS_TOKEN', accessToken);
+
+    log.success('Session credentials configured in Convex!');
+    log.warn('Note: Session tokens expire after ~2 hours. Re-run setup or use Connected App for production.');
+  }
+
+  // Webhook secret
+  console.log(`\n${colors.cyan}Webhook Security:${colors.reset}`);
+  let webhookSecret = '';
+
+  const generateSecret = await promptYesNo('Generate a new webhook secret?', true);
+  if (generateSecret) {
+    try {
+      webhookSecret = execSync('openssl rand -hex 32', { encoding: 'utf-8' }).trim();
+    } catch {
+      // Fallback if openssl not available
+      webhookSecret = [...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+    }
+  } else {
+    webhookSecret = await prompt('Enter webhook secret (32-char hex): ');
+  }
+
+  setConvexEnvVar('SALESFORCE_WEBHOOK_SECRET', webhookSecret);
+
+  console.log(`
+${colors.green}Webhook Secret:${colors.reset} ${webhookSecret}
+
+${colors.yellow}IMPORTANT: Copy this secret to Salesforce!${colors.reset}
+After deploying the Salesforce package:
+1. Go to the "Convex Setup" tab
+2. Paste this secret in the webhook secret field
+`);
+
+  await prompt('Press Enter when done...');
+  log.success('Environment variables configured!');
+  return true;
 }
 
 async function runInitialSync() {
@@ -448,8 +574,8 @@ Salesforce and Convex using Change Data Capture.
   // Guide through CDC enablement
   await enableCDC(orgAlias, objects);
 
-  // Create env file
-  await createEnvFile();
+  // Setup Convex environment variables (auto-configured!)
+  await setupConvexEnvVars(orgAlias);
 
   // Initial sync
   await runInitialSync();

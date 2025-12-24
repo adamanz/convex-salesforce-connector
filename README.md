@@ -47,12 +47,17 @@ npm install
 npm run setup
 ```
 
-The wizard will guide you through:
-1. Connecting to Convex
-2. Authenticating with Salesforce
-3. Selecting objects to sync
-4. Deploying CDC triggers
-5. Running initial sync
+The wizard **automatically handles everything**:
+1. Connects to Convex and Salesforce
+2. Lets you select objects to sync
+3. Deploys CDC triggers to Salesforce
+4. **Auto-configures all Convex environment variables** (no manual copy/paste!)
+5. Generates and syncs webhook secret between SF and Convex
+6. Runs initial data sync
+
+For auth, choose:
+- **Quick Setup**: Uses SF CLI session (expires in 2hrs, good for dev)
+- **Production Setup**: OAuth with auto-refresh (set it and forget it)
 
 ### Option 2: Manual Setup
 
@@ -182,15 +187,18 @@ npx convex deploy
 
 **Environment Variables (Convex)**
 
-Set these in your Convex dashboard under Settings → Environment Variables:
+The setup wizard configures these automatically via `npx convex env set`:
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SALESFORCE_CLIENT_ID` | Connected App Consumer Key | Yes |
-| `SALESFORCE_CLIENT_SECRET` | Connected App Consumer Secret | Yes |
-| `SALESFORCE_INSTANCE_URL` | e.g., `https://yourorg.my.salesforce.com` | Yes |
-| `SALESFORCE_WEBHOOK_SECRET` | Shared HMAC secret (32-char hex) | Yes |
-| `SALESFORCE_REFRESH_TOKEN` | OAuth refresh token | Yes |
+| Variable | Description | Auto-configured? |
+|----------|-------------|------------------|
+| `SALESFORCE_INSTANCE_URL` | Your Salesforce org URL | ✅ Yes |
+| `SALESFORCE_WEBHOOK_SECRET` | HMAC secret for webhooks | ✅ Yes |
+| `SALESFORCE_ACCESS_TOKEN` | Session or OAuth access token | ✅ Yes |
+| `SALESFORCE_REFRESH_TOKEN` | OAuth refresh token (production) | ✅ Yes |
+| `SALESFORCE_CLIENT_ID` | Connected App key (production) | ✅ Yes |
+| `SALESFORCE_CLIENT_SECRET` | Connected App secret (production) | ✅ Yes |
+
+> **Note**: If you need to set these manually, use `npx convex env set VAR_NAME "value"`
 
 **Salesforce Sandbox vs Production**
 
