@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal, api } from "./_generated/api";
+import { verifyWebhookSignature } from "./auth";
 
 const http = httpRouter();
 
@@ -18,7 +19,24 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      const body = await request.json();
+      // Get raw body for signature verification
+      const rawBody = await request.text();
+
+      // Verify HMAC signature
+      const signature = request.headers.get("X-Convex-Signature");
+      const timestamp = request.headers.get("X-Convex-Timestamp");
+
+      const verification = await verifyWebhookSignature(rawBody, signature, timestamp);
+      if (!verification.valid) {
+        console.warn("Webhook signature verification failed:", verification.error);
+        return new Response(
+          JSON.stringify({ error: "Unauthorized", reason: verification.error }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      // Parse body after verification
+      const body = JSON.parse(rawBody);
       console.log("CDC webhook received:", JSON.stringify(body, null, 2));
 
       // Support both single event and batch formats
@@ -106,6 +124,60 @@ http.route({
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
+  }),
+});
+
+// ============================================================================
+// OAUTH CALLBACK
+// ============================================================================
+
+/**
+ * OAuth callback endpoint for Connected App authorization
+ */
+http.route({
+  path: "/oauth/salesforce/callback",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+    const error = url.searchParams.get("error");
+
+    if (error) {
+      return new Response(
+        `<html><body><h1>Authorization Failed</h1><p>${error}</p></body></html>`,
+        { status: 400, headers: { "Content-Type": "text/html" } }
+      );
+    }
+
+    if (!code) {
+      return new Response(
+        `<html><body><h1>Missing Authorization Code</h1></body></html>`,
+        { status: 400, headers: { "Content-Type": "text/html" } }
+      );
+    }
+
+    // Exchange code for tokens
+    const result = await ctx.runAction(internal.auth.exchangeAuthCode, {
+      code,
+      redirectUri: `${url.origin}/oauth/salesforce/callback`,
+    });
+
+    if (!result.success) {
+      return new Response(
+        `<html><body><h1>Token Exchange Failed</h1><p>${result.error}</p></body></html>`,
+        { status: 500, headers: { "Content-Type": "text/html" } }
+      );
+    }
+
+    return new Response(
+      `<html>
+        <body style="font-family: system-ui; padding: 40px; text-align: center;">
+          <h1 style="color: #22c55e;">&#10003; Connected to Salesforce!</h1>
+          <p>You can close this window and return to the setup wizard.</p>
+        </body>
+      </html>`,
+      { status: 200, headers: { "Content-Type": "text/html" } }
+    );
   }),
 });
 

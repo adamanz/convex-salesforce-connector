@@ -308,4 +308,16 @@ export default defineSchema({
     .index("by_objectType", ["objectType"])
     .index("by_recordId", ["recordId"])
     .index("by_processedAt", ["processedAt"]),
+
+  // ============================================================================
+  // SALESFORCE AUTH TOKENS (OAuth token storage)
+  // ============================================================================
+
+  sfAuthTokens: defineTable({
+    accessToken: v.string(),
+    refreshToken: v.string(),
+    instanceUrl: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+  }),
 });

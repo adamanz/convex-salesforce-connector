@@ -1,0 +1,214 @@
+<template>
+    <lightning-card title="Convex CDC Connector Setup" icon-name="custom:custom63">
+        <!-- Progress Indicator -->
+        <lightning-progress-indicator current-step={currentStep} type="base" variant="base" class="slds-m-bottom_medium">
+            <lightning-progress-step label="Welcome" value="1"></lightning-progress-step>
+            <lightning-progress-step label="Configuration" value="2"></lightning-progress-step>
+            <lightning-progress-step label="Test Connection" value="3"></lightning-progress-step>
+            <lightning-progress-step label="Enable CDC" value="4"></lightning-progress-step>
+            <lightning-progress-step label="Complete" value="5"></lightning-progress-step>
+        </lightning-progress-indicator>
+
+        <div class="slds-p-around_medium">
+            <!-- Step 1: Welcome -->
+            <template if:true={isStep1}>
+                <div class="slds-text-align_center slds-m-bottom_large">
+                    <lightning-icon icon-name="utility:salesforce1" size="large" class="slds-m-bottom_medium"></lightning-icon>
+                    <h1 class="slds-text-heading_large slds-m-bottom_small">Welcome to Convex CDC Connector</h1>
+                    <p class="slds-text-body_regular slds-m-bottom_medium">
+                        This wizard will help you set up real-time sync between Salesforce and Convex using Change Data Capture.
+                    </p>
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                        <h2 class="slds-text-heading_small slds-m-bottom_small">What you'll need:</h2>
+                        <ul class="slds-list_dotted slds-text-align_left">
+                            <li>Your Convex deployment URL</li>
+                            <li>A webhook secret (we'll generate one for you)</li>
+                            <li>Admin access to enable Change Data Capture</li>
+                        </ul>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Step 2: Configuration -->
+            <template if:true={isStep2}>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Configure Connection</h2>
+
+                <lightning-input
+                    type="url"
+                    label="Convex Webhook URL"
+                    placeholder="https://your-project.convex.site/webhooks/salesforce/cdc"
+                    value={webhookUrl}
+                    onchange={handleWebhookUrlChange}
+                    required
+                    class="slds-m-bottom_medium">
+                </lightning-input>
+
+                <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                    <div class="slds-col slds-size_3-of-4">
+                        <lightning-input
+                            type="text"
+                            label="Webhook Secret"
+                            value={webhookSecret}
+                            onchange={handleWebhookSecretChange}
+                            placeholder="Enter or generate a secret key"
+                            required>
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4 slds-grid slds-grid_vertical-align-end">
+                        <lightning-button
+                            label="Generate"
+                            onclick={generateSecret}
+                            variant="neutral">
+                        </lightning-button>
+                    </div>
+                </div>
+
+                <lightning-input
+                    type="toggle"
+                    label="Enable Connector"
+                    checked={isEnabled}
+                    onchange={handleEnabledChange}
+                    class="slds-m-bottom_medium">
+                </lightning-input>
+
+                <div class="slds-box slds-theme_info slds-m-top_medium">
+                    <p><lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    <strong>Important:</strong> Copy this secret to your Convex environment variables as <code>SALESFORCE_WEBHOOK_SECRET</code></p>
+                </div>
+            </template>
+
+            <!-- Step 3: Test Connection -->
+            <template if:true={isStep3}>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Test Connection</h2>
+
+                <div class="slds-text-align_center slds-m-bottom_large">
+                    <template if:false={testComplete}>
+                        <p class="slds-m-bottom_medium">Click the button below to test your connection to Convex.</p>
+                        <lightning-button
+                            label="Test Connection"
+                            variant="brand"
+                            onclick={testConnection}
+                            disabled={isLoading}>
+                        </lightning-button>
+                        <template if:true={isLoading}>
+                            <lightning-spinner alternative-text="Testing..." size="small" class="slds-m-left_medium"></lightning-spinner>
+                        </template>
+                    </template>
+
+                    <template if:true={testComplete}>
+                        <template if:true={testSuccess}>
+                            <lightning-icon icon-name="utility:success" variant="success" size="large" class="slds-m-bottom_small"></lightning-icon>
+                            <h3 class="slds-text-heading_small slds-text-color_success">Connection Successful!</h3>
+                            <p class="slds-m-top_small">Your Salesforce org can communicate with Convex.</p>
+                        </template>
+                        <template if:false={testSuccess}>
+                            <lightning-icon icon-name="utility:error" variant="error" size="large" class="slds-m-bottom_small"></lightning-icon>
+                            <h3 class="slds-text-heading_small slds-text-color_error">Connection Failed</h3>
+                            <p class="slds-m-top_small">{testError}</p>
+                            <lightning-button label="Retry" variant="neutral" onclick={testConnection} class="slds-m-top_medium"></lightning-button>
+                        </template>
+                    </template>
+                </div>
+
+                <template if:true={testSuccess}>
+                    <div class="slds-box slds-theme_success">
+                        <p><lightning-icon icon-name="utility:check" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        Remote Site Setting is configured correctly</p>
+                    </div>
+                </template>
+            </template>
+
+            <!-- Step 4: Enable CDC -->
+            <template if:true={isStep4}>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Enable Change Data Capture</h2>
+
+                <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">Follow these steps in Salesforce Setup:</h3>
+                    <ol class="slds-list_ordered">
+                        <li class="slds-m-bottom_small">
+                            Go to <strong>Setup</strong> → Search for <strong>"Change Data Capture"</strong>
+                        </li>
+                        <li class="slds-m-bottom_small">
+                            Select the objects you want to sync:
+                            <ul class="slds-list_dotted slds-m-top_x-small slds-m-left_medium">
+                                <li>Account</li>
+                                <li>Contact</li>
+                                <li>Lead</li>
+                                <li>Opportunity</li>
+                                <li>Any custom objects you need</li>
+                            </ul>
+                        </li>
+                        <li class="slds-m-bottom_small">
+                            Click <strong>Save</strong>
+                        </li>
+                    </ol>
+                </div>
+
+                <lightning-button
+                    label="Open Change Data Capture Setup"
+                    variant="brand"
+                    onclick={openCDCSetup}
+                    class="slds-m-bottom_medium">
+                </lightning-button>
+
+                <div class="slds-box slds-theme_info slds-m-top_medium">
+                    <p><lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                    CDC triggers are already deployed with this package. They will start sending events once CDC is enabled for each object.</p>
+                </div>
+            </template>
+
+            <!-- Step 5: Complete -->
+            <template if:true={isStep5}>
+                <div class="slds-text-align_center">
+                    <lightning-icon icon-name="utility:success" variant="success" size="large" class="slds-m-bottom_medium"></lightning-icon>
+                    <h2 class="slds-text-heading_large slds-m-bottom_small slds-text-color_success">Setup Complete!</h2>
+                    <p class="slds-text-body_regular slds-m-bottom_large">
+                        Your Convex CDC Connector is now configured. Changes to your Salesforce data will automatically sync to Convex.
+                    </p>
+
+                    <div class="slds-box slds-theme_shade slds-m-bottom_large">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">Next Steps</h3>
+                        <ul class="slds-list_dotted slds-text-align_left">
+                            <li>Make a test change in Salesforce (e.g., update an Account)</li>
+                            <li>Check your Convex dashboard to verify the sync</li>
+                            <li>View sync status: <code>GET /webhooks/salesforce/cdc/status</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="slds-grid slds-grid_align-center slds-gutters">
+                        <div class="slds-col">
+                            <lightning-button
+                                label="View Documentation"
+                                variant="neutral"
+                                onclick={openDocs}>
+                            </lightning-button>
+                        </div>
+                        <div class="slds-col">
+                            <lightning-button
+                                label="Start Over"
+                                variant="neutral"
+                                onclick={resetWizard}>
+                            </lightning-button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div slot="footer" class="slds-grid slds-grid_align-spread">
+            <lightning-button
+                label="Previous"
+                onclick={previousStep}
+                disabled={isFirstStep}
+                variant="neutral">
+            </lightning-button>
+            <lightning-button
+                label={nextButtonLabel}
+                onclick={nextStep}
+                disabled={isNextDisabled}
+                variant="brand">
+            </lightning-button>
+        </div>
+    </lightning-card>
+</template>
