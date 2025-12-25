@@ -89,36 +89,103 @@
 
                 <!-- Not Connected State -->
                 <template if:false={isConnected}>
-                    <div class="slds-text-align_center slds-m-bottom_large">
-                        <div class="slds-box slds-box_small slds-theme_shade slds-m-bottom_medium" style="max-width: 400px; margin: 0 auto;">
-                            <lightning-icon icon-name="standard:connected_apps" size="large" class="slds-m-bottom_medium"></lightning-icon>
-                            <h3 class="slds-text-heading_small slds-m-bottom_small">Connect with Convex</h3>
-                            <p class="slds-text-body_small slds-m-bottom_medium">
-                                Click the button below to securely connect this Salesforce org to your Convex project.
-                            </p>
-                            <lightning-button
-                                label="Connect to Convex"
-                                variant="brand"
-                                onclick={initiateOAuth}
-                                disabled={isLoading}
-                                icon-name="utility:link"
-                                class="slds-m-bottom_small">
-                            </lightning-button>
-                            <template if:true={isLoading}>
-                                <lightning-spinner alternative-text="Loading..." size="small" class="slds-m-left_small"></lightning-spinner>
-                            </template>
-                        </div>
+                    <!-- OAuth Not Configured Warning -->
+                    <template if:false={isOAuthConfigured}>
+                        <div class="slds-box slds-theme_warning slds-m-bottom_large">
+                            <div class="slds-grid slds-grid_vertical-align-start">
+                                <lightning-icon icon-name="utility:warning" variant="warning" size="small" class="slds-m-right_small"></lightning-icon>
+                                <div>
+                                    <h3 class="slds-text-heading_small slds-m-bottom_small">OAuth Configuration Required</h3>
+                                    <p class="slds-text-body_small slds-m-bottom_medium">Before connecting, you need to configure OAuth credentials. Follow these steps:</p>
 
-                        <div class="slds-box slds-theme_default slds-m-top_medium" style="max-width: 500px; margin: 0 auto;">
-                            <h4 class="slds-text-heading_small slds-m-bottom_x-small">What happens next:</h4>
-                            <ol class="slds-list_ordered slds-text-align_left slds-text-body_small">
-                                <li class="slds-m-bottom_x-small">You'll be redirected to Convex to sign in</li>
-                                <li class="slds-m-bottom_x-small">Select your team and project (or create a new one)</li>
-                                <li class="slds-m-bottom_x-small">Authorize the connector to access your project</li>
-                                <li>You'll be redirected back here automatically</li>
-                            </ol>
+                                    <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                                        <h4 class="slds-text-heading_small slds-m-bottom_small">Step 1: Register OAuth App with Convex</h4>
+                                        <ol class="slds-list_ordered slds-text-body_small">
+                                            <li class="slds-m-bottom_x-small">Go to <a href="https://dashboard.convex.dev" target="_blank" rel="noopener">Convex Dashboard</a></li>
+                                            <li class="slds-m-bottom_x-small">Navigate to <strong>Settings → OAuth Applications</strong></li>
+                                            <li class="slds-m-bottom_x-small">Register a new application with:
+                                                <ul class="slds-list_dotted slds-m-left_medium slds-m-top_x-small">
+                                                    <li><strong>Name:</strong> Salesforce CDC Connector</li>
+                                                    <li><strong>Redirect URI:</strong> <code>{redirectUri}</code></li>
+                                                </ul>
+                                            </li>
+                                            <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong></li>
+                                        </ol>
+                                    </div>
+
+                                    <div class="slds-box slds-theme_default slds-m-bottom_medium">
+                                        <h4 class="slds-text-heading_small slds-m-bottom_small">Step 2: Configure Credentials in Salesforce</h4>
+                                        <ol class="slds-list_ordered slds-text-body_small">
+                                            <li class="slds-m-bottom_x-small">In Salesforce Setup, search for <strong>Custom Metadata Types</strong></li>
+                                            <li class="slds-m-bottom_x-small">Click <strong>Manage Records</strong> next to <strong>Convex OAuth Settings</strong></li>
+                                            <li class="slds-m-bottom_x-small">Click <strong>New</strong> and enter:
+                                                <ul class="slds-list_dotted slds-m-left_medium slds-m-top_x-small">
+                                                    <li><strong>Label:</strong> Default</li>
+                                                    <li><strong>Client Id:</strong> (from Step 1)</li>
+                                                    <li><strong>Client Secret:</strong> (from Step 1)</li>
+                                                    <li><strong>Redirect URI:</strong> <code>{redirectUri}</code></li>
+                                                </ul>
+                                            </li>
+                                            <li>Click <strong>Save</strong></li>
+                                        </ol>
+                                    </div>
+
+                                    <div class="slds-grid slds-grid_align-center slds-gutters">
+                                        <div class="slds-col">
+                                            <lightning-button
+                                                label="Open Custom Metadata Setup"
+                                                variant="neutral"
+                                                onclick={openCustomMetadataSetup}
+                                                icon-name="utility:settings">
+                                            </lightning-button>
+                                        </div>
+                                        <div class="slds-col">
+                                            <lightning-button
+                                                label="Refresh"
+                                                variant="brand"
+                                                onclick={checkOAuthConfiguration}
+                                                icon-name="utility:refresh">
+                                            </lightning-button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </template>
+
+                    <!-- OAuth Configured - Show Connect Button -->
+                    <template if:true={isOAuthConfigured}>
+                        <div class="slds-text-align_center slds-m-bottom_large">
+                            <div class="slds-box slds-box_small slds-theme_shade slds-m-bottom_medium" style="max-width: 400px; margin: 0 auto;">
+                                <lightning-icon icon-name="standard:connected_apps" size="large" class="slds-m-bottom_medium"></lightning-icon>
+                                <h3 class="slds-text-heading_small slds-m-bottom_small">Connect with Convex</h3>
+                                <p class="slds-text-body_small slds-m-bottom_medium">
+                                    Click the button below to securely connect this Salesforce org to your Convex project.
+                                </p>
+                                <lightning-button
+                                    label="Connect to Convex"
+                                    variant="brand"
+                                    onclick={initiateOAuth}
+                                    disabled={isLoading}
+                                    icon-name="utility:link"
+                                    class="slds-m-bottom_small">
+                                </lightning-button>
+                                <template if:true={isLoading}>
+                                    <lightning-spinner alternative-text="Loading..." size="small" class="slds-m-left_small"></lightning-spinner>
+                                </template>
+                            </div>
+
+                            <div class="slds-box slds-theme_default slds-m-top_medium" style="max-width: 500px; margin: 0 auto;">
+                                <h4 class="slds-text-heading_small slds-m-bottom_x-small">What happens next:</h4>
+                                <ol class="slds-list_ordered slds-text-align_left slds-text-body_small">
+                                    <li class="slds-m-bottom_x-small">You'll be redirected to Convex to sign in</li>
+                                    <li class="slds-m-bottom_x-small">Select your team and project (or create a new one)</li>
+                                    <li class="slds-m-bottom_x-small">Authorize the connector to access your project</li>
+                                    <li>You'll be redirected back here automatically</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </template>
 
                     <!-- New to Convex? -->
                     <div class="slds-box slds-theme_info slds-m-top_medium">

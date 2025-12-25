@@ -81,6 +81,29 @@ public class ConvexOAuthService {
     }
 
     // ============================================================================
+    // OAUTH CONFIGURATION CHECK METHODS
+    // ============================================================================
+
+    /**
+     * Check if OAuth is configured (Client ID exists)
+     * @return true if OAuth credentials are configured
+     */
+    @AuraEnabled(cacheable=true)
+    public static Boolean isOAuthConfigured() {
+        String clientId = getClientId();
+        return String.isNotBlank(clientId);
+    }
+
+    /**
+     * Get the redirect URI for display in setup wizard
+     * @return The redirect URI that should be registered with Convex
+     */
+    @AuraEnabled(cacheable=true)
+    public static String getOAuthRedirectUri() {
+        return getRedirectUri();
+    }
+
+    // ============================================================================
     // OAUTH FLOW METHODS
     // ============================================================================
 

@@ -150,7 +150,42 @@ After installing:
 
 ### OAuth 2.0 Setup (New in v0.3.0)
 
-Version 0.3.0 introduces a streamlined OAuth 2.0 Authorization Code flow with PKCE:
+Version 0.3.0 introduces a streamlined OAuth 2.0 Authorization Code flow with PKCE.
+
+#### Step 1: Register OAuth Application with Convex
+
+1. Go to [Convex Dashboard](https://dashboard.convex.dev)
+2. Navigate to **Settings → OAuth Applications** (or contact Convex to register an OAuth app)
+3. Register a new OAuth application:
+   - **Name**: Salesforce CDC Connector
+   - **Redirect URI**: `https://YOUR_SALESFORCE_DOMAIN.my.salesforce.com/apex/ConvexOAuthCallback`
+   - Note down the **Client ID** and **Client Secret**
+
+#### Step 2: Configure OAuth Credentials in Salesforce
+
+1. In Salesforce Setup, search for **Custom Metadata Types**
+2. Click **Manage Records** next to **Convex OAuth Settings**
+3. Click **New** to create a record:
+   - **Label**: Default
+   - **Convex OAuth Settings Name**: Default
+   - **Client Id**: *(paste from Step 1)*
+   - **Client Secret**: *(paste from Step 1)*
+   - **Redirect URI**: `https://YOUR_SALESFORCE_DOMAIN.my.salesforce.com/apex/ConvexOAuthCallback`
+4. Click **Save**
+
+#### Step 3: Connect to Convex (2 clicks!)
+
+1. Go to the **Convex Setup** tab in Salesforce
+2. Click **Connect with Convex**
+3. Authorize access on Convex dashboard
+
+The OAuth flow automatically:
+- Connects to your Convex team/project
+- Generates and syncs webhook secrets
+- Configures environment variables
+- Sets up the secure connection
+
+#### Before vs After
 
 **Before (7 steps):**
 1. Create Convex project manually
@@ -161,15 +196,10 @@ Version 0.3.0 introduces a streamlined OAuth 2.0 Authorization Code flow with PK
 6. Configure both systems
 7. Test connection
 
-**Now (2 clicks):**
-1. Click "Connect with Convex" in Salesforce
-2. Authorize on Convex dashboard
-
-The OAuth flow automatically:
-- Connects to your Convex team/project
-- Generates and syncs webhook secrets
-- Configures environment variables
-- Sets up the secure connection
+**Now (3 steps + 2 clicks):**
+1. Register OAuth app with Convex (one-time)
+2. Configure credentials in Salesforce Custom Metadata (one-time)
+3. Click "Connect with Convex" → Authorize
 
 ## Architecture
 

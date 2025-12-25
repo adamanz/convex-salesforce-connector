@@ -1,6 +1,7 @@
 import { LightningElement, track, wire } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { NavigationMixin, CurrentPageReference } from 'lightning/navigation';
+import { refreshApex } from '@salesforce/apex';
 
 // OAuth Service methods
 import getAuthorizationUrl from '@salesforce/apex/ConvexOAuthService.getAuthorizationUrl';
@@ -8,6 +9,8 @@ import getActiveConnection from '@salesforce/apex/ConvexOAuthService.getActiveCo
 import isConnectedApex from '@salesforce/apex/ConvexOAuthService.isConnected';
 import disconnect from '@salesforce/apex/ConvexOAuthService.disconnect';
 import configureWebhook from '@salesforce/apex/ConvexOAuthService.configureWebhook';
+import isOAuthConfiguredApex from '@salesforce/apex/ConvexOAuthService.isOAuthConfigured';
+import getOAuthRedirectUri from '@salesforce/apex/ConvexOAuthService.getOAuthRedirectUri';
 
 // CDC Service methods
 import testConnectionApex from '@salesforce/apex/ConvexCDCService.testConnection';
@@ -29,6 +32,11 @@ export default class ConvexSetupWizard extends NavigationMixin(LightningElement)
     @track connectionDate = '';
     @track configurationComplete = false;
     @track configurationStatus = '';
+    @track isOAuthConfigured = false;
+    @track redirectUri = '';
+
+    // Wired results for refresh
+    wiredOAuthConfigResult;
 
     // Wire current page reference to detect OAuth callback
     @wire(CurrentPageReference)
@@ -40,6 +48,23 @@ export default class ConvexSetupWizard extends NavigationMixin(LightningElement)
                 this.loadConnection();
                 this.showToast('Success', 'Successfully connected to Convex!', 'success');
             }
+        }
+    }
+
+    // Wire OAuth configuration check
+    @wire(isOAuthConfiguredApex)
+    wiredOAuthConfig(result) {
+        this.wiredOAuthConfigResult = result;
+        if (result.data !== undefined) {
+            this.isOAuthConfigured = result.data;
+        }
+    }
+
+    // Wire redirect URI
+    @wire(getOAuthRedirectUri)
+    wiredRedirectUri({ data, error }) {
+        if (data) {
+            this.redirectUri = data;
         }
     }
 
@@ -241,6 +266,31 @@ export default class ConvexSetupWizard extends NavigationMixin(LightningElement)
                 url: '/lightning/setup/CdcObjectEnablement/home'
             }
         });
+    }
+
+    openCustomMetadataSetup() {
+        this[NavigationMixin.Navigate]({
+            type: 'standard__webPage',
+            attributes: {
+                url: '/lightning/setup/CustomMetadata/home'
+            }
+        });
+    }
+
+    async checkOAuthConfiguration() {
+        this.isLoading = true;
+        try {
+            await refreshApex(this.wiredOAuthConfigResult);
+            if (this.isOAuthConfigured) {
+                this.showToast('Success', 'OAuth credentials configured successfully!', 'success');
+            } else {
+                this.showToast('Info', 'OAuth credentials not yet configured. Please complete the setup steps.', 'info');
+            }
+        } catch (error) {
+            this.showToast('Error', 'Failed to check configuration: ' + this.getErrorMessage(error), 'error');
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     openDocs() {
