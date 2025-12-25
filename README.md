@@ -1,20 +1,35 @@
 # Convex Salesforce Connector
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Convex](https://img.shields.io/badge/Powered%20by-Convex-FF6B35.svg)](https://convex.dev)
-[![Salesforce](https://img.shields.io/badge/Salesforce-CDC-00A1E0.svg)](https://developer.salesforce.com/docs/atlas.en-us.change_data_capture.meta/change_data_capture)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![npm version](https://img.shields.io/npm/v/convex-salesforce-connector.svg)](https://www.npmjs.com/package/convex-salesforce-connector)
-[![CI](https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+<!-- Salesforce-style badges -->
+<p align="center">
+  <a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcijAAC">
+    <img src="https://img.shields.io/badge/Install%20Package-Production%20Org-00A1E0?style=for-the-badge&logo=salesforce&logoColor=white" alt="Install in Production"/>
+  </a>
+  &nbsp;
+  <a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcijAAC">
+    <img src="https://img.shields.io/badge/Install%20Package-Sandbox-00A1E0?style=for-the-badge&logo=salesforce&logoColor=white" alt="Install in Sandbox"/>
+  </a>
+</p>
 
-<!-- Salesforce Package Install -->
-<a href="https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK">
-  <img src="https://img.shields.io/badge/Install%20in-Production-blue.svg?logo=salesforce" alt="Install in Salesforce Production"/>
-</a>
-<a href="https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK">
-  <img src="https://img.shields.io/badge/Install%20in-Sandbox-green.svg?logo=salesforce" alt="Install in Salesforce Sandbox"/>
-</a>
+<p align="center">
+  <img src="https://img.shields.io/badge/Salesforce-Change%20Data%20Capture-00A1E0?style=flat-square&logo=salesforce&logoColor=white" alt="Salesforce CDC"/>
+  <img src="https://img.shields.io/badge/Powered%20by-Convex-FF6B35?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMkw0IDdWMTdMIDEyIDIyTDIwIDE3VjdMMTIgMloiIGZpbGw9IndoaXRlIi8+PC9zdmc+&logoColor=white" alt="Powered by Convex"/>
+  <img src="https://img.shields.io/badge/Package%20Version-0.3.0-1798c1?style=flat-square" alt="Package Version"/>
+  <img src="https://img.shields.io/badge/API%20Version-59.0-1798c1?style=flat-square" alt="API Version"/>
+  <img src="https://img.shields.io/badge/OAuth%202.0-PKCE-00A1E0?style=flat-square" alt="OAuth 2.0 PKCE"/>
+</p>
+
+<p align="center">
+  <a href="https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml">
+    <img src="https://github.com/adamanz/convex-salesforce-connector/actions/workflows/ci.yml/badge.svg" alt="CI"/>
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
+  </a>
+  <a href="http://makeapullrequest.com">
+    <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/>
+  </a>
+</p>
 
 ---
 
@@ -122,15 +137,39 @@ npx convex run salesforce:syncAll
 
 For the easiest Salesforce deployment, install our unlocked package:
 
-| Environment | Install Link |
-|------------|--------------|
-| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK) |
-| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcNlAAK) |
+| Environment | Install Link | Version |
+|------------|--------------|---------|
+| Production | [Install in Production](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcijAAC) | v0.3.0 |
+| Sandbox | [Install in Sandbox](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tfo000001FcijAAC) | v0.3.0 |
 
 After installing:
 1. Go to the **Convex Setup** tab in Salesforce
-2. Follow the setup wizard to configure your webhook URL and secret
-3. Enable CDC for your desired objects
+2. Click **Connect with Convex** to start the OAuth 2.0 flow
+3. Authorize access to your Convex project (2-click setup!)
+4. Enable CDC for your desired objects
+
+### OAuth 2.0 Setup (New in v0.3.0)
+
+Version 0.3.0 introduces a streamlined OAuth 2.0 Authorization Code flow with PKCE:
+
+**Before (7 steps):**
+1. Create Convex project manually
+2. Copy deployment URL
+3. Generate admin API key
+4. Paste key into Salesforce
+5. Generate webhook secret
+6. Configure both systems
+7. Test connection
+
+**Now (2 clicks):**
+1. Click "Connect with Convex" in Salesforce
+2. Authorize on Convex dashboard
+
+The OAuth flow automatically:
+- Connects to your Convex team/project
+- Generates and syncs webhook secrets
+- Configures environment variables
+- Sets up the secure connection
 
 ## Architecture
 

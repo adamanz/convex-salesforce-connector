@@ -1,12 +1,12 @@
 {
   "packageDirectories": [
     {
-      "versionName": "ver 0.1",
-      "versionNumber": "0.1.0.NEXT",
+      "versionName": "ver 0.3",
+      "versionNumber": "0.3.0.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Convex CDC Connector",
-      "versionDescription": ""
+      "versionDescription": "OAuth 2.0 Authorization Code flow with PKCE - streamlined 2-click setup"
     }
   ],
   "name": "convex-salesforce-connector",
@@ -17,6 +17,9 @@
     "Convex CDC Connector": "0Hofo0000000I3NCAU",
     "Convex CDC Connector@0.1.0-1": "04tfo000001FcKXAA0",
     "Convex CDC Connector@0.1.0-2": "04tfo000001FcM9AAK",
-    "Convex CDC Connector@0.1.0-3": "04tfo000001FcNlAAK"
+    "Convex CDC Connector@0.1.0-3": "04tfo000001FcNlAAK",
+    "Convex CDC Connector@0.2.0-1": "04tfo000001FcQzAAK",
+    "Convex CDC Connector@0.2.0-2": "04tfo000001FcSbAAK",
+    "Convex CDC Connector@0.3.0-1": "04tfo000001FcijAAC"
   }
 }

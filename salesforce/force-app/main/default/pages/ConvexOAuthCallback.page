@@ -1,0 +1,161 @@
+<apex:page controller="ConvexOAuthCallbackController"
+           action="{!processCallback}"
+           showHeader="false"
+           sidebar="false"
+           standardStylesheets="true"
+           docType="html-5.0"
+           lightningStylesheets="true">
+
+    <apex:slds />
+
+    <style>
+        .callback-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .callback-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .convex-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1.5rem;
+        }
+        .success-icon {
+            color: #2e844a;
+            font-size: 48px;
+            margin-bottom: 1rem;
+        }
+        .error-icon {
+            color: #c23934;
+            font-size: 48px;
+            margin-bottom: 1rem;
+        }
+        .spinner-container {
+            margin: 2rem 0;
+        }
+        .connection-info {
+            background: #f3f3f3;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: left;
+        }
+        .redirect-message {
+            color: #706e6b;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+
+    <div class="callback-container">
+        <div class="callback-card">
+            <!-- Convex Logo Placeholder -->
+            <div class="slds-m-bottom_medium">
+                <span class="slds-icon_container slds-icon-standard-connected-apps" title="Convex">
+                    <svg class="slds-icon slds-icon_large" aria-hidden="true">
+                        <use xmlns:xlink="http://www.w3.org/1999/xlink"
+                             xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/standard-sprite/svg/symbols.svg#connected_apps')}">
+                        </use>
+                    </svg>
+                </span>
+            </div>
+
+            <h1 class="slds-text-heading_medium slds-m-bottom_medium">
+                Convex OAuth
+            </h1>
+
+            <!-- Processing State -->
+            <apex:outputPanel rendered="{!isProcessing}">
+                <div class="spinner-container">
+                    <div class="slds-spinner_container slds-is-relative" style="height: 100px;">
+                        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+                            <span class="slds-assistive-text">Connecting...</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </div>
+                <p class="slds-text-body_regular">Connecting to Convex...</p>
+            </apex:outputPanel>
+
+            <!-- Success State -->
+            <apex:outputPanel rendered="{!AND(NOT(isProcessing), NOT(hasError))}">
+                <div class="success-icon">
+                    <span class="slds-icon_container slds-icon-utility-success" title="Success">
+                        <svg class="slds-icon slds-icon_large slds-icon-text-success" aria-hidden="true">
+                            <use xmlns:xlink="http://www.w3.org/1999/xlink"
+                                 xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#success')}">
+                            </use>
+                        </svg>
+                    </span>
+                </div>
+
+                <h2 class="slds-text-heading_small slds-text-color_success slds-m-bottom_medium">
+                    {!successMessage}
+                </h2>
+
+                <div class="connection-info">
+                    <p><strong>Team:</strong> {!teamName}</p>
+                    <apex:outputPanel rendered="{!NOT(ISBLANK(projectName))}">
+                        <p><strong>Project:</strong> {!projectName}</p>
+                    </apex:outputPanel>
+                </div>
+
+                <p class="redirect-message">
+                    Redirecting to setup wizard...
+                </p>
+
+                <script>
+                    setTimeout(function() {
+                        window.location.href = '{!JSENCODE(setupWizardUrl)}';
+                    }, 2000);
+                </script>
+
+                <a href="{!setupWizardUrl}" class="slds-button slds-button_brand slds-m-top_medium">
+                    Continue to Setup
+                </a>
+            </apex:outputPanel>
+
+            <!-- Error State -->
+            <apex:outputPanel rendered="{!AND(NOT(isProcessing), hasError)}">
+                <div class="error-icon">
+                    <span class="slds-icon_container slds-icon-utility-error" title="Error">
+                        <svg class="slds-icon slds-icon_large slds-icon-text-error" aria-hidden="true">
+                            <use xmlns:xlink="http://www.w3.org/1999/xlink"
+                                 xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/utility-sprite/svg/symbols.svg#error')}">
+                            </use>
+                        </svg>
+                    </span>
+                </div>
+
+                <h2 class="slds-text-heading_small slds-text-color_error slds-m-bottom_medium">
+                    Connection Failed
+                </h2>
+
+                <div class="slds-box slds-theme_error slds-m-bottom_medium">
+                    <p>{!errorMessage}</p>
+                </div>
+
+                <apex:form>
+                    <apex:commandButton value="Try Again"
+                                        action="{!retryOAuth}"
+                                        styleClass="slds-button slds-button_brand slds-m-right_small"/>
+                </apex:form>
+
+                <a href="{!setupWizardUrl}" class="slds-button slds-button_neutral">
+                    Return to Setup
+                </a>
+            </apex:outputPanel>
+        </div>
+    </div>
+</apex:page>

@@ -3,8 +3,8 @@
         <!-- Progress Indicator -->
         <lightning-progress-indicator current-step={currentStep} type="base" variant="base" class="slds-m-bottom_medium">
             <lightning-progress-step label="Welcome" value="1"></lightning-progress-step>
-            <lightning-progress-step label="Configuration" value="2"></lightning-progress-step>
-            <lightning-progress-step label="Test Connection" value="3"></lightning-progress-step>
+            <lightning-progress-step label="Connect" value="2"></lightning-progress-step>
+            <lightning-progress-step label="Configure" value="3"></lightning-progress-step>
             <lightning-progress-step label="Enable CDC" value="4"></lightning-progress-step>
             <lightning-progress-step label="Complete" value="5"></lightning-progress-step>
         </lightning-progress-indicator>
@@ -16,106 +16,219 @@
                     <lightning-icon icon-name="utility:salesforce1" size="large" class="slds-m-bottom_medium"></lightning-icon>
                     <h1 class="slds-text-heading_large slds-m-bottom_small">Welcome to Convex CDC Connector</h1>
                     <p class="slds-text-body_regular slds-m-bottom_medium">
-                        This wizard will help you set up real-time sync between Salesforce and Convex using Change Data Capture.
+                        This wizard will connect your Salesforce org to Convex for real-time data sync using Change Data Capture.
                     </p>
-                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
-                        <h2 class="slds-text-heading_small slds-m-bottom_small">What you'll need:</h2>
-                        <ul class="slds-list_dotted slds-text-align_left">
-                            <li>Your Convex deployment URL</li>
-                            <li>A webhook secret (we'll generate one for you)</li>
-                            <li>Admin access to enable Change Data Capture</li>
-                        </ul>
+
+                    <div class="slds-grid slds-gutters slds-wrap slds-m-bottom_medium">
+                        <!-- What's New with OAuth -->
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                            <div class="slds-box slds-theme_success" style="height: 100%;">
+                                <h2 class="slds-text-heading_small slds-m-bottom_small">
+                                    <lightning-icon icon-name="utility:success" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                    One-Click Setup
+                                </h2>
+                                <ul class="slds-list_dotted slds-text-align_left">
+                                    <li>Connect to Convex with OAuth</li>
+                                    <li>Auto-configure webhook URLs</li>
+                                    <li>Automatic secret synchronization</li>
+                                    <li>No manual copy/paste required</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Prerequisites -->
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-bottom_small">
+                            <div class="slds-box slds-theme_shade" style="height: 100%;">
+                                <h2 class="slds-text-heading_small slds-m-bottom_small">
+                                    <lightning-icon icon-name="utility:check" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                    What you'll need:
+                                </h2>
+                                <ul class="slds-list_dotted slds-text-align_left">
+                                    <li>A Convex account (free at <a href="https://convex.dev" target="_blank">convex.dev</a>)</li>
+                                    <li>Admin access to this Salesforce org</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time estimate -->
+                    <div class="slds-box slds-theme_info slds-m-bottom_medium slds-text-align_center">
+                        <lightning-icon icon-name="utility:clock" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                        <strong>Setup time: ~2 minutes</strong>
                     </div>
                 </div>
             </template>
 
-            <!-- Step 2: Configuration -->
+            <!-- Step 2: Connect to Convex (OAuth) -->
             <template if:true={isStep2}>
-                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Configure Connection</h2>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Connect to Convex</h2>
 
-                <lightning-input
-                    type="url"
-                    label="Convex Webhook URL"
-                    placeholder="https://your-project.convex.site/webhooks/salesforce/cdc"
-                    value={webhookUrl}
-                    onchange={handleWebhookUrlChange}
-                    required
-                    class="slds-m-bottom_medium">
-                </lightning-input>
-
-                <div class="slds-grid slds-gutters slds-m-bottom_medium">
-                    <div class="slds-col slds-size_3-of-4">
-                        <lightning-input
-                            type="text"
-                            label="Webhook Secret"
-                            value={webhookSecret}
-                            onchange={handleWebhookSecretChange}
-                            placeholder="Enter or generate a secret key"
-                            required>
-                        </lightning-input>
-                    </div>
-                    <div class="slds-col slds-size_1-of-4 slds-grid slds-grid_vertical-align-end">
-                        <lightning-button
-                            label="Generate"
-                            onclick={generateSecret}
-                            variant="neutral">
-                        </lightning-button>
-                    </div>
-                </div>
-
-                <lightning-input
-                    type="toggle"
-                    label="Enable Connector"
-                    checked={isEnabled}
-                    onchange={handleEnabledChange}
-                    class="slds-m-bottom_medium">
-                </lightning-input>
-
-                <div class="slds-box slds-theme_info slds-m-top_medium">
-                    <p><lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                    <strong>Important:</strong> Copy this secret to your Convex environment variables as <code>SALESFORCE_WEBHOOK_SECRET</code></p>
-                </div>
-            </template>
-
-            <!-- Step 3: Test Connection -->
-            <template if:true={isStep3}>
-                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Test Connection</h2>
-
-                <div class="slds-text-align_center slds-m-bottom_large">
-                    <template if:false={testComplete}>
-                        <p class="slds-m-bottom_medium">Click the button below to test your connection to Convex.</p>
-                        <lightning-button
-                            label="Test Connection"
-                            variant="brand"
-                            onclick={testConnection}
-                            disabled={isLoading}>
-                        </lightning-button>
-                        <template if:true={isLoading}>
-                            <lightning-spinner alternative-text="Testing..." size="small" class="slds-m-left_medium"></lightning-spinner>
-                        </template>
-                    </template>
-
-                    <template if:true={testComplete}>
-                        <template if:true={testSuccess}>
-                            <lightning-icon icon-name="utility:success" variant="success" size="large" class="slds-m-bottom_small"></lightning-icon>
-                            <h3 class="slds-text-heading_small slds-text-color_success">Connection Successful!</h3>
-                            <p class="slds-m-top_small">Your Salesforce org can communicate with Convex.</p>
-                        </template>
-                        <template if:false={testSuccess}>
-                            <lightning-icon icon-name="utility:error" variant="error" size="large" class="slds-m-bottom_small"></lightning-icon>
-                            <h3 class="slds-text-heading_small slds-text-color_error">Connection Failed</h3>
-                            <p class="slds-m-top_small">{testError}</p>
-                            <lightning-button label="Retry" variant="neutral" onclick={testConnection} class="slds-m-top_medium"></lightning-button>
-                        </template>
-                    </template>
-                </div>
-
-                <template if:true={testSuccess}>
-                    <div class="slds-box slds-theme_success">
-                        <p><lightning-icon icon-name="utility:check" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                        Remote Site Setting is configured correctly</p>
+                <!-- Already Connected State -->
+                <template if:true={isConnected}>
+                    <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col">
+                                <lightning-icon icon-name="utility:success" variant="inverse" size="medium" class="slds-m-right_medium"></lightning-icon>
+                            </div>
+                            <div class="slds-col slds-grow">
+                                <h3 class="slds-text-heading_small">Connected to Convex</h3>
+                                <p class="slds-m-top_x-small">
+                                    <strong>Team:</strong> {connectionTeam}<br/>
+                                    <template if:true={connectionProject}>
+                                        <strong>Project:</strong> {connectionProject}<br/>
+                                    </template>
+                                    <strong>Connected:</strong> {connectionDate}
+                                </p>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-button label="Disconnect" variant="destructive-text" onclick={handleDisconnect}></lightning-button>
+                            </div>
+                        </div>
                     </div>
                 </template>
+
+                <!-- Not Connected State -->
+                <template if:false={isConnected}>
+                    <div class="slds-text-align_center slds-m-bottom_large">
+                        <div class="slds-box slds-box_small slds-theme_shade slds-m-bottom_medium" style="max-width: 400px; margin: 0 auto;">
+                            <lightning-icon icon-name="standard:connected_apps" size="large" class="slds-m-bottom_medium"></lightning-icon>
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Connect with Convex</h3>
+                            <p class="slds-text-body_small slds-m-bottom_medium">
+                                Click the button below to securely connect this Salesforce org to your Convex project.
+                            </p>
+                            <lightning-button
+                                label="Connect to Convex"
+                                variant="brand"
+                                onclick={initiateOAuth}
+                                disabled={isLoading}
+                                icon-name="utility:link"
+                                class="slds-m-bottom_small">
+                            </lightning-button>
+                            <template if:true={isLoading}>
+                                <lightning-spinner alternative-text="Loading..." size="small" class="slds-m-left_small"></lightning-spinner>
+                            </template>
+                        </div>
+
+                        <div class="slds-box slds-theme_default slds-m-top_medium" style="max-width: 500px; margin: 0 auto;">
+                            <h4 class="slds-text-heading_small slds-m-bottom_x-small">What happens next:</h4>
+                            <ol class="slds-list_ordered slds-text-align_left slds-text-body_small">
+                                <li class="slds-m-bottom_x-small">You'll be redirected to Convex to sign in</li>
+                                <li class="slds-m-bottom_x-small">Select your team and project (or create a new one)</li>
+                                <li class="slds-m-bottom_x-small">Authorize the connector to access your project</li>
+                                <li>You'll be redirected back here automatically</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- New to Convex? -->
+                    <div class="slds-box slds-theme_info slds-m-top_medium">
+                        <h4 class="slds-text-heading_small slds-m-bottom_x-small">
+                            <lightning-icon icon-name="utility:new" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                            New to Convex?
+                        </h4>
+                        <p class="slds-text-body_small">
+                            Sign up for free at <a href="https://dashboard.convex.dev" target="_blank" rel="noopener"><strong>dashboard.convex.dev</strong></a>.
+                            You can create a new project during the connection process.
+                        </p>
+                    </div>
+                </template>
+            </template>
+
+            <!-- Step 3: Configure (Auto-configuration) -->
+            <template if:true={isStep3}>
+                <h2 class="slds-text-heading_medium slds-m-bottom_medium">Configure Connection</h2>
+
+                <template if:false={configurationComplete}>
+                    <div class="slds-text-align_center slds-m-bottom_large">
+                        <p class="slds-m-bottom_medium">Click below to automatically configure the webhook connection.</p>
+
+                        <lightning-button
+                            label="Auto-Configure"
+                            variant="brand"
+                            onclick={autoConfigureWebhook}
+                            disabled={isLoading}
+                            icon-name="utility:settings">
+                        </lightning-button>
+
+                        <template if:true={isLoading}>
+                            <div class="slds-m-top_medium">
+                                <lightning-spinner alternative-text="Configuring..." size="medium"></lightning-spinner>
+                                <p class="slds-m-top_small slds-text-body_small">{configurationStatus}</p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:true={configurationComplete}>
+                    <div class="slds-box slds-theme_success slds-m-bottom_medium">
+                        <lightning-icon icon-name="utility:success" variant="inverse" size="small" class="slds-m-right_small"></lightning-icon>
+                        <strong>Configuration Complete!</strong>
+                    </div>
+
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">Connection Details</h3>
+                        <dl class="slds-dl_horizontal">
+                            <dt class="slds-dl_horizontal__label">Webhook URL:</dt>
+                            <dd class="slds-dl_horizontal__detail">
+                                <code>{webhookUrl}</code>
+                            </dd>
+                            <dt class="slds-dl_horizontal__label">Secret Configured:</dt>
+                            <dd class="slds-dl_horizontal__detail">
+                                <lightning-icon icon-name="utility:success" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                Yes (auto-synced)
+                            </dd>
+                            <dt class="slds-dl_horizontal__label">Connection Test:</dt>
+                            <dd class="slds-dl_horizontal__detail">
+                                <template if:true={testSuccess}>
+                                    <lightning-icon icon-name="utility:success" size="xx-small" variant="success" class="slds-m-right_xx-small"></lightning-icon>
+                                    Passed
+                                </template>
+                                <template if:false={testSuccess}>
+                                    <lightning-button label="Test Connection" variant="neutral" onclick={testConnection} size="small"></lightning-button>
+                                </template>
+                            </dd>
+                        </dl>
+                    </div>
+                </template>
+
+                <!-- Manual Override Option -->
+                <div class="slds-m-top_large">
+                    <lightning-accordion allow-multiple-sections-open>
+                        <lightning-accordion-section name="manual" label="Manual Configuration (Advanced)">
+                            <lightning-input
+                                type="url"
+                                label="Webhook URL"
+                                placeholder="https://your-project.convex.site/webhooks/salesforce/cdc"
+                                value={webhookUrl}
+                                onchange={handleWebhookUrlChange}
+                                field-level-help="Override the auto-detected webhook URL"
+                                class="slds-m-bottom_medium">
+                            </lightning-input>
+
+                            <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                                <div class="slds-col slds-size_3-of-4">
+                                    <lightning-input
+                                        type="text"
+                                        label="Webhook Secret"
+                                        value={webhookSecret}
+                                        onchange={handleWebhookSecretChange}
+                                        placeholder="Enter or generate a secret key"
+                                        field-level-help="Override the auto-generated secret">
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4 slds-grid slds-grid_vertical-align-end">
+                                    <lightning-button
+                                        label="Generate"
+                                        onclick={generateSecret}
+                                        variant="neutral">
+                                    </lightning-button>
+                                </div>
+                            </div>
+
+                            <lightning-button label="Save Manual Config" variant="neutral" onclick={saveManualConfig}></lightning-button>
+                        </lightning-accordion-section>
+                    </lightning-accordion>
+                </div>
             </template>
 
             <!-- Step 4: Enable CDC -->
@@ -148,6 +261,7 @@
                     label="Open Change Data Capture Setup"
                     variant="brand"
                     onclick={openCDCSetup}
+                    icon-name="utility:new_window"
                     class="slds-m-bottom_medium">
                 </lightning-button>
 
@@ -166,12 +280,26 @@
                         Your Convex CDC Connector is now configured. Changes to your Salesforce data will automatically sync to Convex.
                     </p>
 
-                    <div class="slds-box slds-theme_shade slds-m-bottom_large">
+                    <div class="slds-box slds-theme_shade slds-m-bottom_large" style="max-width: 500px; margin: 0 auto;">
+                        <h3 class="slds-text-heading_small slds-m-bottom_small">Connection Summary</h3>
+                        <dl class="slds-dl_horizontal slds-text-align_left">
+                            <dt class="slds-dl_horizontal__label">Team:</dt>
+                            <dd class="slds-dl_horizontal__detail">{connectionTeam}</dd>
+                            <template if:true={connectionProject}>
+                                <dt class="slds-dl_horizontal__label">Project:</dt>
+                                <dd class="slds-dl_horizontal__detail">{connectionProject}</dd>
+                            </template>
+                            <dt class="slds-dl_horizontal__label">Webhook:</dt>
+                            <dd class="slds-dl_horizontal__detail"><code class="slds-text-body_small">{webhookUrl}</code></dd>
+                        </dl>
+                    </div>
+
+                    <div class="slds-box slds-theme_default slds-m-bottom_large" style="max-width: 500px; margin: 0 auto;">
                         <h3 class="slds-text-heading_small slds-m-bottom_small">Next Steps</h3>
                         <ul class="slds-list_dotted slds-text-align_left">
                             <li>Make a test change in Salesforce (e.g., update an Account)</li>
                             <li>Check your Convex dashboard to verify the sync</li>
-                            <li>View sync status: <code>GET /webhooks/salesforce/cdc/status</code></li>
+                            <li>View sync status in Convex logs</li>
                         </ul>
                     </div>
 
@@ -180,14 +308,16 @@
                             <lightning-button
                                 label="View Documentation"
                                 variant="neutral"
-                                onclick={openDocs}>
+                                onclick={openDocs}
+                                icon-name="utility:open">
                             </lightning-button>
                         </div>
                         <div class="slds-col">
                             <lightning-button
-                                label="Start Over"
-                                variant="neutral"
-                                onclick={resetWizard}>
+                                label="Open Convex Dashboard"
+                                variant="brand"
+                                onclick={openConvexDashboard}
+                                icon-name="utility:new_window">
                             </lightning-button>
                         </div>
                     </div>
